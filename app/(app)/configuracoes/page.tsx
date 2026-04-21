@@ -75,7 +75,7 @@ export default function ConfiguracoesPage() {
       </button>
 
       {/* footer */}
-      <div className="text-center py-4">
+      <div className="text-center py-4 space-y-1">
         <p style={{
           fontFamily: "'Helvetica Neue', Arial, sans-serif",
           fontWeight: 300,
@@ -86,7 +86,10 @@ export default function ConfiguracoesPage() {
         }}>
           Feito pela Beyonder · 2026
         </p>
-        <p className="text-[#222] text-[10px] mt-1">Elysium v0.1.0</p>
+        <p style={{ color: '#2a2a2a', fontSize: '10px', letterSpacing: '0.06em' }}>
+          Tradição &amp; Confiança 🐊🤝✅
+        </p>
+        <p className="text-[#1e1e1e] text-[10px]">Elysium v0.1.0</p>
       </div>
 
       <div className="h-2" />

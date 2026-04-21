@@ -2,17 +2,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { TrendingUp, BookOpen, Heart, CheckSquare, Target, FolderOpen, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react'
+import { TrendingUp, BookOpen, Heart, CheckSquare, Target, FolderOpen, ChevronLeft, ChevronRight, Lightbulb, CalendarDays, StickyNote } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 const MODULES = [
-  { href: '/financas',  label: 'Caixa',    icon: TrendingUp,  color: '#4ade80', desc: 'Poupança acumulada' },
-  { href: '/estudos',   label: 'Estudos',  icon: BookOpen,    color: '#60a5fa', desc: 'Registro de aprendizado' },
-  { href: '/saude',     label: 'Saúde',    icon: Heart,       color: '#f87171', desc: 'Corpo e bem-estar' },
-  { href: '/rotina',    label: 'Rotina',   icon: CheckSquare, color: '#facc15', desc: 'Hábitos e treinos' },
-  { href: '/metas',     label: 'Metas',    icon: Target,      color: '#a78bfa', desc: 'Seus objetivos' },
-  { href: '/projetos',  label: 'Projetos', icon: FolderOpen,  color: '#38bdf8', desc: 'Ecossistema Beyonder' },
+  { href: '/financas',   label: 'Caixa',      icon: TrendingUp,  color: '#4ade80', desc: 'Poupança acumulada' },
+  { href: '/estudos',    label: 'Estudos',    icon: BookOpen,    color: '#60a5fa', desc: 'Registro de aprendizado' },
+  { href: '/saude',      label: 'Saúde',      icon: Heart,       color: '#f87171', desc: 'Corpo e bem-estar' },
+  { href: '/rotina',     label: 'Rotina',     icon: CheckSquare, color: '#facc15', desc: 'Hábitos e treinos' },
+  { href: '/metas',      label: 'Metas',      icon: Target,      color: '#a78bfa', desc: 'Seus objetivos' },
+  { href: '/calendario', label: 'Calendário', icon: CalendarDays,color: '#C9A84C', desc: 'Demandas e prazos' },
+  { href: '/notas',      label: 'Notas',      icon: StickyNote,  color: '#38bdf8', desc: 'Anotações rápidas' },
+  { href: '/projetos',   label: 'Projetos',   icon: FolderOpen,  color: '#fb923c', desc: 'Ecossistema Beyonder' },
 ]
 
 const INSIGHTS = [
@@ -25,18 +27,15 @@ const INSIGHTS = [
 ]
 
 export default function DashboardPage() {
-  const [userName, setUserName]   = useState('')
-  const [photo, setPhoto]         = useState<string | null>(null)
+  const [userName, setUserName]     = useState('')
+  const [photo, setPhoto]           = useState<string | null>(null)
   const [insightIdx, setInsightIdx] = useState(0)
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const today       = new Date()
-  const greeting    = today.getHours() < 12 ? 'Bom dia' : today.getHours() < 18 ? 'Boa tarde' : 'Boa noite'
-  const dateStr     = format(today, "EEEE, d 'de' MMMM", { locale: ptBR })
+  const today    = new Date()
+  const greeting = today.getHours() < 12 ? 'Bom dia' : today.getHours() < 18 ? 'Boa tarde' : 'Boa noite'
+  const dateStr  = format(today, "EEEE, d 'de' MMMM", { locale: ptBR })
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => {
-      if (user?.email) setUserName(user.email.split('@')[0])
-    })
+    // Load from localStorage first (priority)
     try {
       const savedPhoto = localStorage.getItem('elysium_photo')
       const savedNome  = localStorage.getItem('elysium_nome')
@@ -44,11 +43,29 @@ export default function DashboardPage() {
       if (savedNome)  setUserName(savedNome)
     } catch {}
 
-    // auto-advance insights
+    // Only use email if no custom name is set
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        const savedNome = localStorage.getItem('elysium_nome')
+        if (!savedNome) setUserName(user.email.split('@')[0])
+      }
+    })
+
+    // Listen for profile updates from configuracoes (same-tab)
+    function onProfileUpdate(e: CustomEvent) {
+      if (e.detail?.nome !== undefined) setUserName(e.detail.nome)
+      if (e.detail?.photo !== undefined) setPhoto(e.detail.photo)
+    }
+    window.addEventListener('elysium_profile_update', onProfileUpdate as EventListener)
+
     const t = setInterval(() => {
       setInsightIdx(i => (i + 1) % INSIGHTS.length)
     }, 5000)
-    return () => clearInterval(t)
+
+    return () => {
+      clearInterval(t)
+      window.removeEventListener('elysium_profile_update', onProfileUpdate as EventListener)
+    }
   }, [])
 
   function prevInsight() { setInsightIdx(i => (i - 1 + INSIGHTS.length) % INSIGHTS.length) }
@@ -62,7 +79,7 @@ export default function DashboardPage() {
       {/* header */}
       <div className="flex items-center justify-between pt-1">
         <div>
-          <p className="text-[#333] text-xs capitalize tracking-wide">{dateStr}</p>
+          <p className="text-[#555] text-xs capitalize tracking-wide">{dateStr}</p>
           <h1 className="text-2xl font-semibold text-[#f0f0f0] mt-0.5">
             {greeting}{userName ? `, ${userName.split(' ')[0]}` : ''}
           </h1>
@@ -77,10 +94,9 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* carrossel de insights */}
+      {/* insights carousel */}
       <div className="relative rounded-2xl p-5 overflow-hidden"
-        style={{ background:'linear-gradient(135deg,rgba(201,168,76,0.06) 0%,rgba(201,168,76,0.02) 100%)', border:'1px solid rgba(201,168,76,0.12)' }}>
-        {/* dots bg */}
+        style={{ background:'linear-gradient(135deg,rgba(201,168,76,0.07) 0%,rgba(201,168,76,0.02) 100%)', border:'1px solid rgba(201,168,76,0.15)' }}>
         <div className="absolute inset-0 opacity-[0.025]"
           style={{ backgroundImage:'radial-gradient(circle,#C9A84C 1px,transparent 1px)', backgroundSize:'20px 20px' }} />
 
@@ -91,60 +107,59 @@ export default function DashboardPage() {
               <Lightbulb size={12} className="text-[#C9A84C]" strokeWidth={1.5} />
               <p className="text-xs text-[#C9A84C] uppercase tracking-wider font-medium">Insight</p>
             </div>
-            <p className="text-[#e0e0e0] font-semibold text-sm mb-1">{ins.title}</p>
-            <p className="text-[#444] text-xs leading-relaxed">{ins.body}</p>
+            <p className="text-[#e8e8e8] font-semibold text-sm mb-1">{ins.title}</p>
+            <p className="text-[#666] text-xs leading-relaxed">{ins.body}</p>
           </div>
         </div>
 
-        {/* controls */}
         <div className="flex items-center justify-between mt-4">
           <div className="flex gap-1.5">
             {INSIGHTS.map((_, i) => (
               <button key={i} onClick={() => setInsightIdx(i)}
                 className="rounded-full transition-all duration-300"
-                style={{ width: i === insightIdx ? '16px' : '6px', height:'6px', background: i === insightIdx ? '#C9A84C' : '#2a2a2a' }} />
+                style={{ width: i === insightIdx ? '16px' : '6px', height:'6px', background: i === insightIdx ? '#C9A84C' : '#333' }} />
             ))}
           </div>
           <div className="flex gap-2">
             <button onClick={prevInsight}
-              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
-              style={{ background:'rgba(255,255,255,0.04)', border:'1px solid #1e1e1e' }}>
-              <ChevronLeft size={14} className="text-[#555]" />
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+              style={{ background:'rgba(255,255,255,0.07)', border:'1px solid #2a2a2a' }}>
+              <ChevronLeft size={15} className="text-[#aaa]" />
             </button>
             <button onClick={nextInsight}
-              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
-              style={{ background:'rgba(255,255,255,0.04)', border:'1px solid #1e1e1e' }}>
-              <ChevronRight size={14} className="text-[#555]" />
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+              style={{ background:'rgba(255,255,255,0.07)', border:'1px solid #2a2a2a' }}>
+              <ChevronRight size={15} className="text-[#aaa]" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* módulos grid */}
+      {/* módulos */}
       <div>
-        <p className="text-xs text-[#333] uppercase tracking-wider font-medium mb-3">Acessar módulos</p>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <p className="text-xs text-[#555] uppercase tracking-wider font-medium mb-3">Acessar módulos</p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {MODULES.map(({ href, label, icon: Icon, color, desc }, i) => (
             <Link key={href} href={href}
               className="group rounded-2xl p-4 transition-all duration-200 active:scale-[0.97] animate-fade-slide-up"
               style={{
-                background:'rgba(255,255,255,0.02)',
-                border:'1px solid #1a1a1a',
-                animationDelay:`${i*50}ms`,
+                background:'rgba(255,255,255,0.025)',
+                border:'1px solid #222',
+                animationDelay:`${i * 40}ms`,
               }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                 style={{ background:`${color}12`, border:`1px solid ${color}20` }}>
                 <Icon size={18} style={{ color }} strokeWidth={1.5} />
               </div>
-              <p className="text-[#e0e0e0] font-semibold text-sm">{label}</p>
-              <p className="text-[#333] text-xs mt-0.5">{desc}</p>
+              <p className="text-[#e8e8e8] font-semibold text-sm">{label}</p>
+              <p className="text-[#555] text-xs mt-0.5">{desc}</p>
               <div className="mt-3 h-[1px]" style={{ background:`linear-gradient(90deg,${color}30,transparent)` }} />
             </Link>
           ))}
         </div>
       </div>
 
-      {/* quick stats — lidos do localStorage */}
+      {/* quick stats */}
       <QuickStats />
 
       <div className="h-2" />
@@ -161,9 +176,9 @@ function QuickStats() {
   useEffect(() => {
     try {
       const dep = JSON.parse(localStorage.getItem('elysium_depositos') || '[]')
-      const ses = JSON.parse(localStorage.getItem('elysium_sessoes') || '[]')
-      const met = JSON.parse(localStorage.getItem('elysium_metas') || '[]')
-      const hab = JSON.parse(localStorage.getItem('elysium_habits') || '[]')
+      const ses = JSON.parse(localStorage.getItem('elysium_sessoes')   || '[]')
+      const met = JSON.parse(localStorage.getItem('elysium_metas')     || '[]')
+      const hab = JSON.parse(localStorage.getItem('elysium_habits')    || '[]')
       setCaixa(dep.reduce((a: number, d: { valor: number }) => a + d.valor, 0))
       setSessoes(ses.length)
       setMetas(met.filter((m: { concluida: boolean }) => !m.concluida).length)
@@ -172,20 +187,19 @@ function QuickStats() {
   }, [])
 
   const stats = [
-    { label: 'Em caixa',    value: caixa > 0 ? caixa.toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:0 }) : '–', color:'#4ade80' },
-    { label: 'Sessões',     value: sessoes > 0 ? `${sessoes} aula${sessoes !== 1 ? 's' : ''}` : '–', color:'#60a5fa' },
-    { label: 'Metas ativas', value: metas > 0 ? `${metas} meta${metas !== 1 ? 's' : ''}` : '–', color:'#a78bfa' },
-    { label: 'Hábitos ok',  value: habits > 0 ? `${habits} hoje` : '–', color:'#facc15' },
+    { label: 'Em caixa',     value: caixa   > 0 ? caixa.toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:0 }) : '–', color:'#4ade80' },
+    { label: 'Sessões',      value: sessoes  > 0 ? `${sessoes} aula${sessoes  !== 1 ? 's' : ''}` : '–', color:'#60a5fa' },
+    { label: 'Metas ativas', value: metas    > 0 ? `${metas} meta${metas     !== 1 ? 's' : ''}` : '–', color:'#a78bfa' },
+    { label: 'Hábitos ok',   value: habits   > 0 ? `${habits} hoje` : '–',                              color:'#facc15' },
   ]
 
   return (
     <div>
-      <p className="text-xs text-[#333] uppercase tracking-wider font-medium mb-3">Resumo</p>
+      <p className="text-xs text-[#555] uppercase tracking-wider font-medium mb-3">Resumo</p>
       <div className="grid grid-cols-2 gap-3">
         {stats.map(({ label, value, color }) => (
-          <div key={label} className="rounded-2xl p-4"
-            style={{ background:'rgba(255,255,255,0.02)', border:'1px solid #1a1a1a' }}>
-            <p className="text-[10px] text-[#333] uppercase tracking-wider mb-1">{label}</p>
+          <div key={label} className="rounded-2xl p-4" style={{ background:'rgba(255,255,255,0.025)', border:'1px solid #222' }}>
+            <p className="text-[10px] text-[#555] uppercase tracking-wider mb-1">{label}</p>
             <p className="font-semibold text-[#f0f0f0] text-base">{value}</p>
             <div className="mt-2 h-[1px]" style={{ background:`linear-gradient(90deg,${color}40,transparent)` }} />
           </div>

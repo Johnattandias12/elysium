@@ -1,113 +1,242 @@
 'use client'
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import PageHeader from '@/components/layout/PageHeader'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths, getDay } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { useState, useEffect } from 'react'
+import { ChevronLeft, ChevronRight, Plus, X, Trash2, CalendarDays } from 'lucide-react'
 
-const EVENTS = [
-  { date: '2026-04-21', title: 'Consulta médica', color: '#f87171' },
-  { date: '2026-04-22', title: 'Reunião projeto',  color: '#60a5fa' },
-  { date: '2026-04-25', title: 'Academia',         color: '#4ade80' },
-  { date: '2026-04-28', title: 'Revisão mensal',   color: '#C9A84C' },
-  { date: '2026-04-30', title: 'Lançar projeto',   color: '#a78bfa' },
-]
-
-const HABITS_DONE: Record<string, number> = {
-  '2026-04-18': 5, '2026-04-19': 4, '2026-04-20': 5, '2026-04-21': 3,
+interface CalEvent {
+  id: string
+  titulo: string
+  data: string
+  hora?: string
+  cor: string
+  prioridade: 'baixa' | 'media' | 'alta'
 }
 
+const MESES       = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
+const CORES       = ['#C9A84C','#4ade80','#60a5fa','#f87171','#a78bfa','#facc15','#38bdf8']
+
 export default function CalendarioPage() {
-  const [month, setMonth] = useState(new Date())
-  const [selected, setSelected] = useState(new Date())
+  const now   = new Date()
+  const [viewDate, setViewDate]         = useState(new Date(now.getFullYear(), now.getMonth(), 1))
+  const [events, setEvents]             = useState<CalEvent[]>([])
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [showForm, setShowForm]         = useState(false)
+  const [titulo, setTitulo]             = useState('')
+  const [hora, setHora]                 = useState('')
+  const [cor, setCor]                   = useState('#C9A84C')
+  const [prioridade, setPrioridade]     = useState<'baixa' | 'media' | 'alta'>('media')
 
-  const start = startOfMonth(month)
-  const end = endOfMonth(month)
-  const days = eachDayOfInterval({ start, end })
-  const startPad = getDay(start)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('elysium_eventos')
+      if (saved) setEvents(JSON.parse(saved))
+    } catch {}
+  }, [])
 
-  const dayEvents = EVENTS.filter(e => isSameDay(new Date(e.date), selected))
+  function saveEvents(list: CalEvent[]) {
+    setEvents(list)
+    localStorage.setItem('elysium_eventos', JSON.stringify(list))
+  }
+
+  function addEvent() {
+    if (!titulo.trim() || !selectedDate) return
+    saveEvents([...events, {
+      id: Date.now().toString(), titulo: titulo.trim(), data: selectedDate,
+      hora: hora || undefined, cor, prioridade,
+    }].sort((a, b) => a.data.localeCompare(b.data) || (a.hora ?? '').localeCompare(b.hora ?? '')))
+    setTitulo(''); setHora(''); setShowForm(false)
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission()
+  }
+
+  const year        = viewDate.getFullYear()
+  const month       = viewDate.getMonth()
+  const firstDay    = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const todayStr    = now.toISOString().slice(0, 10)
+
+  function dayStr(d: number) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  }
+
+  const selectedEvents = selectedDate ? events.filter(e => e.data === selectedDate) : []
+  const upcomingEvents = events.filter(e => e.data >= todayStr).slice(0, 8)
+
+  const prioColor = { alta:'#f87171', media:'#facc15', baixa:'#4ade80' }
+  const prioBg    = { alta:'rgba(248,113,113,0.1)', media:'rgba(250,204,21,0.1)', baixa:'rgba(74,222,128,0.1)' }
 
   return (
     <div className="space-y-5 page-enter">
-      <PageHeader title="Agenda" subtitle="Planeje sua semana" accent="#a78bfa" />
+      <div className="pt-1">
+        <div className="flex items-center gap-2 mb-1">
+          <CalendarDays size={18} className="text-[#C9A84C]" strokeWidth={1.5} />
+          <h1 className="text-2xl font-semibold text-[#f0f0f0]">Calendário</h1>
+        </div>
+        <p className="text-[#666] text-sm">Suas demandas e prazos</p>
+      </div>
 
       {/* calendar */}
-      <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-4">
-        {/* nav */}
+      <div className="rounded-2xl p-4" style={{ background:'rgba(255,255,255,0.025)', border:'1px solid #252525' }}>
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => setMonth(m => subMonths(m, 1))}
-            className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center active:scale-95 transition-transform">
-            <ChevronLeft size={18} className="text-[#666]" />
+          <button onClick={() => setViewDate(new Date(year, month - 1, 1))}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+            style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #252525' }}>
+            <ChevronLeft size={16} className="text-[#888]" />
           </button>
-          <h2 className="text-[#e8e8e8] font-medium capitalize">
-            {format(month, 'MMMM yyyy', { locale: ptBR })}
-          </h2>
-          <button onClick={() => setMonth(m => addMonths(m, 1))}
-            className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center active:scale-95 transition-transform">
-            <ChevronRight size={18} className="text-[#666]" />
+          <p className="text-[#e0e0e0] font-semibold">{MESES[month]} {year}</p>
+          <button onClick={() => setViewDate(new Date(year, month + 1, 1))}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+            style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #252525' }}>
+            <ChevronRight size={16} className="text-[#888]" />
           </button>
         </div>
 
-        {/* weekday headers */}
-        <div className="grid grid-cols-7 mb-2">
-          {['D','S','T','Q','Q','S','S'].map((d, i) => (
-            <div key={i} className="text-center text-[#444] text-xs py-1">{d}</div>
+        <div className="grid grid-cols-7 mb-1">
+          {DIAS_SEMANA.map(d => (
+            <div key={d} className="text-center text-[10px] text-[#444] font-medium py-1">{d}</div>
           ))}
         </div>
 
-        {/* days grid */}
-        <div className="grid grid-cols-7 gap-y-1">
-          {Array.from({ length: startPad }).map((_, i) => <div key={`pad-${i}`} />)}
-          {days.map(day => {
-            const dateStr = format(day, 'yyyy-MM-dd')
-            const event = EVENTS.find(e => isSameDay(new Date(e.date), day))
-            const habitsDone = HABITS_DONE[dateStr]
-            const isSelected = isSameDay(day, selected)
-            const todayDate = isToday(day)
-
+        <div className="grid grid-cols-7 gap-0.5">
+          {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const d  = i + 1
+            const ds = dayStr(d)
+            const isToday    = ds === todayStr
+            const isSelected = ds === selectedDate
+            const evs = events.filter(e => e.data === ds)
             return (
-              <button key={dateStr} onClick={() => setSelected(day)}
-                className="flex flex-col items-center py-1 rounded-xl transition-all duration-200 active:scale-90 relative"
-                style={{ background: isSelected ? '#C9A84C' : 'transparent' }}>
-                <span className={`text-sm leading-none w-7 h-7 flex items-center justify-center rounded-lg font-medium transition-all
-                  ${todayDate && !isSelected ? 'text-[#C9A84C]' : ''}
-                  ${isSelected ? 'text-[#0c0c0c]' : 'text-[#888]'}
-                `}>
-                  {format(day, 'd')}
-                </span>
-                {/* dot indicators */}
-                <div className="flex gap-0.5 mt-0.5 h-1">
-                  {event && <span className="w-1 h-1 rounded-full" style={{ background: isSelected ? '#0c0c0c' : event.color }} />}
-                  {habitsDone && <span className="w-1 h-1 rounded-full" style={{ background: isSelected ? '#0c0c0c' : '#4ade80' }} />}
-                </div>
+              <button key={d} onClick={() => { setSelectedDate(ds === selectedDate ? null : ds); setShowForm(false) }}
+                className="relative flex flex-col items-center py-1.5 rounded-xl transition-all active:scale-90 min-h-[44px] justify-center"
+                style={{
+                  background: isSelected ? 'rgba(201,168,76,0.15)' : isToday ? 'rgba(201,168,76,0.06)' : 'transparent',
+                  border: isSelected ? '1px solid rgba(201,168,76,0.4)' : isToday ? '1px solid rgba(201,168,76,0.2)' : '1px solid transparent',
+                }}>
+                <span className="text-sm font-medium" style={{ color: isSelected || isToday ? '#C9A84C' : '#bbb' }}>{d}</span>
+                {evs.length > 0 && (
+                  <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+                    {evs.slice(0, 3).map(e => <div key={e.id} className="w-1 h-1 rounded-full" style={{ background: e.cor }} />)}
+                  </div>
+                )}
               </button>
             )
           })}
         </div>
       </div>
 
-      {/* selected day */}
-      <div>
-        <p className="text-xs text-[#555] uppercase tracking-wider font-medium mb-3">
-          {format(selected, "EEEE, d 'de' MMMM", { locale: ptBR })}
-        </p>
-        {dayEvents.length === 0 ? (
-          <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-6 text-center">
-            <p className="text-[#444] text-sm">Nenhum evento neste dia</p>
+      {/* selected day panel */}
+      {selectedDate && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-[#666] capitalize">
+              {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' })}
+            </p>
+            <button onClick={() => setShowForm(v => !v)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+              style={{ background:'rgba(201,168,76,0.08)', border:'1px solid rgba(201,168,76,0.2)' }}>
+              {showForm ? <X size={14} className="text-[#C9A84C]" /> : <Plus size={14} className="text-[#C9A84C]" />}
+            </button>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {dayEvents.map((ev, i) => (
-              <div key={i} className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-4 flex items-center gap-3 animate-fade-slide-up"
-                style={{ animationDelay: `${i * 60}ms` }}>
-                <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: ev.color, boxShadow: `0 0 6px ${ev.color}60` }} />
-                <span className="text-[#e8e8e8] text-sm">{ev.title}</span>
+
+          {showForm && (
+            <div className="rounded-2xl p-4 space-y-3 animate-fade-slide-up"
+              style={{ background:'rgba(201,168,76,0.04)', border:'1px solid rgba(201,168,76,0.18)' }}>
+              <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)}
+                placeholder="Título da demanda…" onKeyDown={e => e.key === 'Enter' && addEvent()}
+                className="w-full h-11 rounded-xl px-4 text-[#e0e0e0] placeholder-[#444] outline-none"
+                style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #2a2a2a', fontSize:'16px' }} />
+              <input type="time" value={hora} onChange={e => setHora(e.target.value)}
+                className="w-full h-11 rounded-xl px-4 text-[#e0e0e0] outline-none"
+                style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #2a2a2a', fontSize:'16px', colorScheme:'dark' }} />
+              <div className="flex gap-2">
+                {(['baixa','media','alta'] as const).map(p => (
+                  <button key={p} onClick={() => setPrioridade(p)}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-medium transition-all"
+                    style={{
+                      background: prioridade === p ? prioBg[p] : 'rgba(255,255,255,0.03)',
+                      color: prioridade === p ? prioColor[p] : '#555',
+                      border: prioridade === p ? `1px solid ${prioColor[p]}40` : '1px solid transparent',
+                    }}>
+                    {p === 'baixa' ? '↓ Baixa' : p === 'media' ? '→ Média' : '↑ Alta'}
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <div className="flex gap-2 flex-wrap">
+                {CORES.map(c => (
+                  <button key={c} onClick={() => setCor(c)}
+                    className="w-6 h-6 rounded-full transition-all active:scale-90"
+                    style={{ background: c, boxShadow: cor === c ? `0 0 0 2px #080808, 0 0 0 4px ${c}` : 'none' }} />
+                ))}
+              </div>
+              <button onClick={addEvent} disabled={!titulo.trim()}
+                className="w-full h-11 rounded-xl font-semibold text-sm transition-all active:scale-[0.97]"
+                style={{ background: titulo.trim() ? '#C9A84C' : 'rgba(255,255,255,0.05)', color: titulo.trim() ? '#080808' : '#444' }}>
+                Adicionar ao calendário
+              </button>
+            </div>
+          )}
+
+          {selectedEvents.length === 0 && !showForm ? (
+            <div className="rounded-2xl p-6 text-center" style={{ border:'1px dashed #252525' }}>
+              <p className="text-[#555] text-sm">Nenhuma demanda neste dia</p>
+              <p className="text-[#3a3a3a] text-xs mt-1">Toque em + para adicionar</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {selectedEvents.map(e => (
+                <div key={e.id} className="flex items-center gap-3 rounded-xl px-4 py-3 group"
+                  style={{ background:'rgba(255,255,255,0.025)', borderTop:'1px solid #222', borderRight:'1px solid #222', borderBottom:'1px solid #222', borderLeft:`3px solid ${e.cor}` }}>
+                  <div className="flex-1">
+                    <p className="text-[#e8e8e8] font-medium text-sm">{e.titulo}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {e.hora && <span className="text-[#555] text-xs">{e.hora}</span>}
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                        style={{ background: prioBg[e.prioridade], color: prioColor[e.prioridade] }}>
+                        {e.prioridade}
+                      </span>
+                    </div>
+                  </div>
+                  <button onClick={() => saveEvents(events.filter(x => x.id !== e.id))}
+                    className="opacity-0 group-hover:opacity-100 text-[#444] hover:text-[#f87171] transition-all">
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* upcoming */}
+      {!selectedDate && (
+        <div>
+          <p className="text-xs text-[#555] uppercase tracking-wider font-medium mb-3">Próximas demandas</p>
+          {upcomingEvents.length === 0 ? (
+            <div className="rounded-2xl p-6 text-center" style={{ border:'1px dashed #252525' }}>
+              <CalendarDays size={28} className="mx-auto mb-2 text-[#2a2a2a]" strokeWidth={1} />
+              <p className="text-[#555] text-sm">Selecione um dia no calendário para adicionar demandas</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {upcomingEvents.map(e => (
+                <div key={e.id} className="flex items-center gap-3 rounded-xl px-4 py-3"
+                  style={{ background:'rgba(255,255,255,0.025)', borderTop:'1px solid #222', borderRight:'1px solid #222', borderBottom:'1px solid #222', borderLeft:`3px solid ${e.cor}` }}>
+                  <div className="flex-1">
+                    <p className="text-[#e8e8e8] font-medium text-sm">{e.titulo}</p>
+                    <p className="text-[#555] text-xs">
+                      {new Date(e.data + 'T12:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'short' })}
+                      {e.hora ? ` · ${e.hora}` : ''}
+                    </p>
+                  </div>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                    style={{ background: prioBg[e.prioridade], color: prioColor[e.prioridade] }}>
+                    {e.prioridade}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="h-2" />
     </div>

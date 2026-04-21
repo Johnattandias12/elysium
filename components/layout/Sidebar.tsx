@@ -3,24 +3,26 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, PiggyBank, BookOpen, Heart, CheckSquare,
-  Target, FolderOpen, Settings, LogOut
+  Target, FolderOpen, Settings, LogOut, CalendarDays, StickyNote
 } from 'lucide-react'
 import { ElysiumSymbol } from './ElysiumLogo'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const NAV = [
-  { href: '/',          icon: LayoutDashboard, label: 'Dashboard',  color: '#C9A84C' },
-  { href: '/financas',  icon: PiggyBank,       label: 'Caixa',      color: '#4ade80' },
-  { href: '/estudos',   icon: BookOpen,        label: 'Estudos',    color: '#60a5fa' },
-  { href: '/saude',     icon: Heart,           label: 'Saúde',      color: '#f87171' },
-  { href: '/rotina',    icon: CheckSquare,     label: 'Rotina',     color: '#facc15' },
-  { href: '/metas',     icon: Target,          label: 'Metas',      color: '#a78bfa' },
-  { href: '/projetos',  icon: FolderOpen,      label: 'Projetos',   color: '#38bdf8' },
+  { href: '/',           icon: LayoutDashboard, label: 'Dashboard',  color: '#C9A84C' },
+  { href: '/financas',   icon: PiggyBank,       label: 'Caixa',      color: '#4ade80' },
+  { href: '/estudos',    icon: BookOpen,        label: 'Estudos',    color: '#60a5fa' },
+  { href: '/saude',      icon: Heart,           label: 'Saúde',      color: '#f87171' },
+  { href: '/rotina',     icon: CheckSquare,     label: 'Rotina',     color: '#facc15' },
+  { href: '/metas',      icon: Target,          label: 'Metas',      color: '#a78bfa' },
+  { href: '/calendario', icon: CalendarDays,    label: 'Calendário', color: '#C9A84C' },
+  { href: '/notas',      icon: StickyNote,      label: 'Notas',      color: '#38bdf8' },
+  { href: '/projetos',   icon: FolderOpen,      label: 'Projetos',   color: '#fb923c' },
 ]
 
 export default function Sidebar() {
-  const path = usePathname()
+  const path   = usePathname()
   const router = useRouter()
 
   async function handleLogout() {
@@ -30,10 +32,10 @@ export default function Sidebar() {
 
   return (
     <aside className="hidden md:flex fixed left-0 top-0 h-full w-60 flex-col z-40"
-      style={{ background: '#080808', borderRight: '1px solid #1a1a1a' }}>
+      style={{ background: '#0a0a0a', borderRight: '1px solid #1e1e1e' }}>
 
-      {/* logo */}
-      <div className="flex items-center gap-3 px-5 py-6 border-b border-[#1a1a1a]">
+      {/* logo — clicável → home */}
+      <Link href="/" className="flex items-center gap-3 px-5 py-6 border-b border-[#1a1a1a] hover:bg-[#111] transition-colors">
         <ElysiumSymbol size={34} />
         <div>
           <span style={{
@@ -49,7 +51,7 @@ export default function Sidebar() {
             BEYONDER · 2026
           </span>
         </div>
-      </div>
+      </Link>
 
       {/* nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -60,7 +62,7 @@ export default function Sidebar() {
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200"
               style={{
                 background: active ? `${color}10` : 'transparent',
-                color: active ? color : '#4a4a4a',
+                color: active ? color : '#555',
               }}>
               <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-none"
                 style={{ background: active ? `${color}15` : 'transparent' }}>
@@ -77,12 +79,12 @@ export default function Sidebar() {
       {/* bottom */}
       <div className="px-3 pb-6 space-y-0.5 border-t border-[#1a1a1a] pt-4">
         <Link href="/configuracoes"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#3a3a3a] hover:text-[#888] hover:bg-[#111] transition-all duration-200">
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#444] hover:text-[#888] hover:bg-[#111] transition-all duration-200">
           <Settings size={16} strokeWidth={1.5} />
           <span className="text-sm">Configurações</span>
         </Link>
         <button onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#3a3a3a] hover:text-[#f87171] hover:bg-[rgba(248,113,113,0.05)] transition-all duration-200 w-full">
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#444] hover:text-[#f87171] hover:bg-[rgba(248,113,113,0.05)] transition-all duration-200 w-full">
           <LogOut size={16} strokeWidth={1.5} />
           <span className="text-sm">Sair</span>
         </button>

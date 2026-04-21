@@ -217,9 +217,9 @@ export default function RotinaPage() {
 
       {/* ── TREINO ── */}
       {tab === 'treino' && (
-        <div className="space-y-2">
-          <p className="text-xs text-[#444] uppercase tracking-wider font-medium mb-1">
-            Plano semanal de treinos
+        <div className="space-y-3">
+          <p className="text-xs text-[#555] uppercase tracking-wider font-medium">
+            Plano semanal
           </p>
           {treino.map((t, i) => {
             const isToday = i === todayIdx
@@ -227,8 +227,8 @@ export default function RotinaPage() {
               <div key={t.dia}
                 className="rounded-xl overflow-hidden transition-all"
                 style={{
-                  border: isToday ? '1px solid rgba(250,204,21,0.25)' : '1px solid #1a1a1a',
-                  background: isToday ? 'rgba(250,204,21,0.03)' : 'rgba(255,255,255,0.02)',
+                  border: isToday ? '1px solid rgba(250,204,21,0.25)' : '1px solid #222',
+                  background: isToday ? 'rgba(250,204,21,0.03)' : 'rgba(255,255,255,0.025)',
                 }}>
                 <div className="flex items-center gap-3 px-4 py-3">
                   <div className="w-20 flex-none">
@@ -238,32 +238,118 @@ export default function RotinaPage() {
                     {isToday && <p className="text-[10px] text-[#facc15] opacity-60">Hoje</p>}
                   </div>
                   {editIdx === i ? (
-                    <input
-                      autoFocus
+                    <input autoFocus
                       type="text" value={t.treino}
                       onChange={e => updateTreino(i, e.target.value)}
                       onBlur={() => setEditIdx(null)}
                       onKeyDown={e => e.key === 'Enter' && setEditIdx(null)}
                       placeholder="Ex: Peito + Tríceps, Descanso…"
-                      className="flex-1 h-9 rounded-lg px-3 text-[#e0e0e0] placeholder-[#2a2a2a] outline-none text-sm"
+                      className="flex-1 h-9 rounded-lg px-3 text-[#e0e0e0] placeholder-[#444] outline-none text-sm"
                       style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(250,204,21,0.3)', fontSize:'16px' }}
                     />
                   ) : (
                     <button onClick={() => setEditIdx(i)}
                       className="flex-1 text-left text-sm transition-colors"
-                      style={{ color: t.treino ? '#e0e0e0' : '#2a2a2a' }}>
-                      {t.treino || 'Tocar para definir o treino…'}
+                      style={{ color: t.treino ? '#e0e0e0' : '#333' }}>
+                      {t.treino || 'Tocar para definir…'}
                     </button>
                   )}
-                  <Dumbbell size={14} style={{ color: t.treino ? '#facc15' : '#2a2a2a', flexShrink:0 }} strokeWidth={1.5} />
+                  <Dumbbell size={14} style={{ color: t.treino ? '#facc15' : '#333', flexShrink:0 }} strokeWidth={1.5} />
                 </div>
               </div>
             )
           })}
+
+          {/* checklist de exercícios de hoje */}
+          <div className="mt-2">
+            <p className="text-xs text-[#555] uppercase tracking-wider font-medium mb-2">Exercícios de hoje</p>
+            <ExerciciosChecklist />
+          </div>
         </div>
       )}
 
       <div className="h-2" />
+    </div>
+  )
+}
+
+// ──────────────────────────── CHECKLIST EXERCÍCIOS ────────────────────────────
+interface Exercicio { id: string; nome: string; done: boolean }
+
+function ExerciciosChecklist() {
+  const todayKey = `elysium_exercicios_${new Date().toISOString().slice(0,10)}`
+  const [items, setItems]     = useState<Exercicio[]>([])
+  const [showAdd, setShowAdd] = useState(false)
+  const [input, setInput]     = useState('')
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(todayKey)
+      if (saved) setItems(JSON.parse(saved))
+    } catch {}
+  }, [todayKey])
+
+  function save(list: Exercicio[]) {
+    setItems(list)
+    localStorage.setItem(todayKey, JSON.stringify(list))
+  }
+
+  function add() {
+    if (!input.trim()) return
+    save([...items, { id: Date.now().toString(), nome: input.trim(), done: false }])
+    setInput('')
+  }
+
+  const done = items.filter(i => i.done).length
+
+  return (
+    <div className="rounded-xl p-3 space-y-2" style={{ background:'rgba(250,204,21,0.03)', border:'1px solid rgba(250,204,21,0.12)' }}>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-[#facc15] font-medium">
+          {done}/{items.length} exercícios
+        </p>
+        <button onClick={() => setShowAdd(v => !v)}
+          className="w-6 h-6 rounded-md flex items-center justify-center"
+          style={{ background:'rgba(250,204,21,0.1)', border:'1px solid rgba(250,204,21,0.2)' }}>
+          {showAdd ? <X size={12} className="text-[#facc15]" /> : <Plus size={12} className="text-[#facc15]" />}
+        </button>
+      </div>
+
+      {showAdd && (
+        <div className="flex gap-2">
+          <input autoFocus type="text" value={input} onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && add()}
+            placeholder="Ex: Supino, Agachamento…"
+            className="flex-1 h-9 rounded-lg px-3 text-[#e0e0e0] placeholder-[#444] outline-none text-sm"
+            style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #2a2a2a', fontSize:'16px' }} />
+          <button onClick={add}
+            className="px-3 h-9 rounded-lg text-xs font-semibold"
+            style={{ background:'rgba(250,204,21,0.12)', color:'#facc15' }}>OK</button>
+        </div>
+      )}
+
+      {items.length === 0 ? (
+        <p className="text-[#333] text-xs text-center py-1">Nenhum exercício — toque em + para adicionar</p>
+      ) : (
+        <div className="space-y-1.5">
+          {items.map(ex => (
+            <div key={ex.id} className="flex items-center gap-2 group cursor-pointer"
+              onClick={() => save(items.map(x => x.id === ex.id ? { ...x, done: !x.done } : x))}>
+              <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-none transition-all"
+                style={{ borderColor: ex.done ? '#facc15' : '#333', background: ex.done ? '#facc15' : 'transparent' }}>
+                {ex.done && <span className="text-[8px] text-[#080808] font-bold">✓</span>}
+              </div>
+              <span className="flex-1 text-sm" style={{ color: ex.done ? '#444' : '#e0e0e0', textDecoration: ex.done ? 'line-through' : 'none' }}>
+                {ex.nome}
+              </span>
+              <button onClick={e => { e.stopPropagation(); save(items.filter(x => x.id !== ex.id)) }}
+                className="opacity-0 group-hover:opacity-100 text-[#333] hover:text-[#f87171] transition-all">
+                <Trash2 size={11} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

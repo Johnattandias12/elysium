@@ -31,8 +31,8 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 h-full w-60 flex-col z-40"
-      style={{ background: '#0a0a0a', borderRight: '1px solid #1e1e1e' }}>
+    <aside className="hidden md:flex fixed left-0 top-0 h-full w-60 flex-col z-50"
+      style={{ background: 'var(--bg-base)', borderRight: '1px solid var(--border)' }}>
 
       {/* logo — clicável → home */}
       <Link href="/" className="flex items-center gap-3 px-5 py-6 border-b border-[#1a1a1a] hover:bg-[#111] transition-colors">

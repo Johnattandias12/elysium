@@ -58,7 +58,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-[100dvh] flex flex-col items-center justify-center px-5 overflow-hidden"
-      style={{ background: '#080808' }}>
+      style={{ background: 'var(--bg-base)' }}>
 
       {/* ambient glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">

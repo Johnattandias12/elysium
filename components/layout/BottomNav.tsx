@@ -20,10 +20,10 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
       style={{
-        background: 'rgba(8,8,8,0.95)',
+        background: 'rgba(18,18,18,0.95)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid #1e1e1e',
+        borderTop: '1px solid var(--border)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}>
       <div className="flex items-center justify-around h-[60px] px-1">

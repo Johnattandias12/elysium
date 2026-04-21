@@ -1,24 +1,17 @@
 export default function AppFooter() {
   return (
-    <div className="py-8 text-center border-t border-[#111] mt-4">
+    <div className="py-6 text-center border-t border-[#0f0f0f] mt-8">
       <p style={{
-        fontFamily: "'Helvetica Neue', Arial, sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontWeight: 300,
         letterSpacing: '0.14em',
-        color: '#2a2a2a',
+        color: '#1e1e1e',
         fontSize: '10px',
         textTransform: 'uppercase',
       }}>
         Feito pela Beyonder · 2026
       </p>
-      <p style={{
-        fontFamily: "'Helvetica Neue', Arial, sans-serif",
-        fontWeight: 400,
-        letterSpacing: '0.06em',
-        color: '#2a2a2a',
-        fontSize: '10px',
-        marginTop: '4px',
-      }}>
+      <p style={{ color: '#161616', fontSize: '10px', marginTop: '3px' }}>
         Tradição &amp; Confiança 🐊🤝✅
       </p>
     </div>

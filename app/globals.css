@@ -1,21 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg-base:       #0c0c0c;
-  --bg-surface:    #111111;
-  --bg-elevated:   #1a1a1a;
-  --border:        #222222;
-  --border-strong: #333333;
-  --text-primary:  #e8e8e8;
+  --bg-base:       #080808;
+  --bg-surface:    #0f0f0f;
+  --bg-elevated:   #161616;
+  --border:        #1e1e1e;
+  --border-strong: #2a2a2a;
+  --text-primary:  #f0f0f0;
   --text-secondary:#888888;
-  --text-muted:    #555555;
+  --text-muted:    #444444;
   --brand-gold:    #C9A84C;
   --finance:       #4ade80;
   --study:         #60a5fa;
   --health:        #f87171;
   --routine:       #facc15;
+  --goals:         #a78bfa;
   --nav-h:         64px;
   --safe-bottom:   env(safe-area-inset-bottom, 0px);
 }
@@ -33,7 +36,7 @@ html {
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;

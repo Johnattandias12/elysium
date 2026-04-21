@@ -64,6 +64,13 @@ export default function SaudePage() {
   const ultimoPeso = pesos[pesos.length - 1]
   const ultimoSono = sonos[sonos.length - 1]
 
+  function limparTudo() {
+    if (!confirm('Deseja realmente apagar todos os dados de saúde?')) return
+    savePesos([])
+    saveSonos([])
+    saveAgua(0)
+  }
+
   return (
     <div className="space-y-5 page-enter">
       <div className="pt-1">
@@ -72,6 +79,9 @@ export default function SaudePage() {
           <h1 className="text-2xl font-semibold text-[#f0f0f0]">Saúde</h1>
         </div>
         <p className="text-[#666] text-sm">Monitore seu corpo e bem-estar</p>
+      </div>
+      <div className="flex justify-end mt-[-30px] mb-2 relative z-10">
+         <button onClick={limparTudo} className="text-xs text-[#f87171] opacity-70 hover:opacity-100 transition-opacity px-2 py-1 bg-[rgba(248,113,113,0.1)] rounded-lg">Limpar tudo</button>
       </div>
 
       {/* stats row */}
@@ -132,7 +142,7 @@ export default function SaudePage() {
                 <input type="date" value={pesoData} onChange={e => setPesoData(e.target.value)}
                   className="flex-1 h-11 rounded-xl px-3 text-[#e0e0e0] outline-none"
                   style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #2a2a2a', fontSize:'16px', colorScheme:'dark' }} />
-                <input type="number" value={pesoInput} onChange={e => setPesoInput(e.target.value)}
+                <input type="text" value={pesoInput} onChange={e => setPesoInput(e.target.value.replace(/[^0-9.,]/g, ''))}
                   placeholder="kg" inputMode="decimal" onKeyDown={e => e.key === 'Enter' && addPeso()}
                   className="w-24 h-11 rounded-xl px-3 text-[#e0e0e0] placeholder-[#444] outline-none"
                   style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #2a2a2a', fontSize:'16px' }} />
@@ -236,8 +246,8 @@ export default function SaudePage() {
                 <input type="date" value={sonoData} onChange={e => setSonoData(e.target.value)}
                   className="flex-1 h-11 rounded-xl px-3 text-[#e0e0e0] outline-none"
                   style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #2a2a2a', fontSize:'16px', colorScheme:'dark' }} />
-                <input type="number" value={sonoInput} onChange={e => setSonoInput(e.target.value)}
-                  placeholder="horas" inputMode="decimal" step="0.5" min="0" max="24"
+                <input type="text" value={sonoInput} onChange={e => setSonoInput(e.target.value.replace(/[^0-9.,]/g, ''))}
+                  placeholder="horas" inputMode="decimal"
                   onKeyDown={e => e.key === 'Enter' && addSono()}
                   className="w-24 h-11 rounded-xl px-3 text-[#e0e0e0] placeholder-[#444] outline-none"
                   style={{ background:'rgba(255,255,255,0.05)', border:'1px solid #2a2a2a', fontSize:'16px' }} />

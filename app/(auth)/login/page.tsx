@@ -37,7 +37,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${location.origin}/auth/callback` },
+        options: { emailRedirectTo: `https://elysium-beyonder.vercel.app/auth/callback` },
       })
       setLoading(false)
       if (error) { setError(error.message); return }
@@ -47,7 +47,7 @@ export default function LoginPage() {
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
+      options: { emailRedirectTo: `https://elysium-beyonder.vercel.app/auth/callback` },
     })
     setLoading(false)
     if (error) { setError(error.message); return }

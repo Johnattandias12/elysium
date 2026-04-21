@@ -1,15 +1,17 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, PiggyBank, BookOpen, Heart, CheckSquare, Target } from 'lucide-react'
+import { LayoutDashboard, PiggyBank, BookOpen, Heart, CheckSquare, Target, CalendarDays, StickyNote } from 'lucide-react'
 
 const NAV = [
   { href: '/',         icon: LayoutDashboard, label: 'Início',   color: '#C9A84C' },
   { href: '/financas', icon: PiggyBank,       label: 'Caixa',    color: '#4ade80' },
   { href: '/estudos',  icon: BookOpen,        label: 'Estudos',  color: '#60a5fa' },
   { href: '/saude',    icon: Heart,           label: 'Saúde',    color: '#f87171' },
-  { href: '/rotina',   icon: CheckSquare,     label: 'Rotina',   color: '#facc15' },
-  { href: '/metas',    icon: Target,          label: 'Metas',    color: '#a78bfa' },
+  { href: '/rotina',     icon: CheckSquare,     label: 'Rotina',   color: '#facc15' },
+  { href: '/metas',      icon: Target,          label: 'Metas',    color: '#a78bfa' },
+  { href: '/calendario', icon: CalendarDays,    label: 'Agenda',   color: '#C9A84C' },
+  { href: '/notas',      icon: StickyNote,      label: 'Notas',    color: '#38bdf8' },
 ]
 
 export default function BottomNav() {

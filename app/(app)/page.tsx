@@ -5,6 +5,7 @@ import { ptBR } from 'date-fns/locale'
 import { TrendingUp, BookOpen, Heart, CheckSquare, Target, FolderOpen, ChevronLeft, ChevronRight, Lightbulb, CalendarDays, StickyNote } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { usePathname } from 'next/navigation'
 
 const MODULES = [
   { href: '/financas',   label: 'Caixa',      icon: TrendingUp,  color: '#4ade80', desc: 'Poupança acumulada' },
@@ -35,13 +36,15 @@ export default function DashboardPage() {
   const dateStr  = format(today, "EEEE, d 'de' MMMM", { locale: ptBR })
 
   useEffect(() => {
-    // Load from localStorage first (priority)
-    try {
-      const savedPhoto = localStorage.getItem('elysium_photo')
-      const savedNome  = localStorage.getItem('elysium_nome')
-      if (savedPhoto) setPhoto(savedPhoto)
-      if (savedNome)  setUserName(savedNome)
-    } catch {}
+    function loadProfile() {
+      try {
+        const savedPhoto = localStorage.getItem('elysium_photo')
+        const savedNome  = localStorage.getItem('elysium_nome')
+        if (savedPhoto) setPhoto(savedPhoto)
+        if (savedNome)  setUserName(savedNome)
+      } catch {}
+    }
+    loadProfile()
 
     // Only use email if no custom name is set
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -57,14 +60,18 @@ export default function DashboardPage() {
       if (e.detail?.photo !== undefined) setPhoto(e.detail.photo)
     }
     window.addEventListener('elysium_profile_update', onProfileUpdate as EventListener)
+    window.addEventListener('focus', loadProfile)
+    window.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadProfile() })
 
     const t = setInterval(() => {
       setInsightIdx(i => (i + 1) % INSIGHTS.length)
-    }, 5000)
+    }, 6000)
 
     return () => {
       clearInterval(t)
       window.removeEventListener('elysium_profile_update', onProfileUpdate as EventListener)
+      window.removeEventListener('focus', loadProfile)
+      window.removeEventListener('visibilitychange', loadProfile)
     }
   }, [])
 
@@ -162,6 +169,9 @@ export default function DashboardPage() {
       {/* quick stats */}
       <QuickStats />
 
+      {/* quick notes */}
+      <QuickNote />
+
       <div className="h-2" />
     </div>
   )
@@ -205,6 +215,43 @@ function QuickStats() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+function QuickNote() {
+  const [nota, setNota] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    try {
+      const n = localStorage.getItem('elysium_quicknote')
+      if (n) setNota(n)
+    } catch {}
+  }, [])
+
+  function saveNota(val: string) {
+    setNota(val)
+    localStorage.setItem('elysium_quicknote', val)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center justify-between mb-2">
+         <p className="text-xs text-[#555] uppercase tracking-wider font-medium">Bloco de Notas</p>
+         {saved && <span className="text-[10px] text-[#4ade80]">Salvo!</span>}
+      </div>
+      <textarea
+        value={nota}
+        onChange={e => saveNota(e.target.value)}
+        placeholder="Escreva algumas notas aqui..."
+        className="w-full h-24 rounded-2xl p-4 text-sm text-[#e0e0e0] placeholder-[#444] resize-none outline-none transition-all"
+        style={{ background:'rgba(255,255,255,0.025)', border:'1px solid #222' }}
+        onFocus={e => { e.currentTarget.style.border='1px solid rgba(201,168,76,0.4)' }}
+        onBlur={e => { e.currentTarget.style.border='1px solid #222' }}
+      />
     </div>
   )
 }

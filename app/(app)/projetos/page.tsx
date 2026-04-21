@@ -29,7 +29,7 @@ const APPS = [
   },
   {
     name: 'Filgueira Imobiliária',
-    desc: 'Plataforma para marca d'água imobiliária.',
+    desc: "Plataforma para marca d’água imobiliária.",
     url: 'https://filgueiraimob.vercel.app/',
     emoji: '🏠',
     color: '#4ade80',

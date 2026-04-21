@@ -1,0 +1,13 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Elysium</title>
+<desc>Favicon Elysium: símbolo E geométrico minimalista dourado sobre fundo escuro</desc>
+
+<rect width="512" height="512" fill="#0c0c0c" rx="80"/>
+
+<g transform="translate(256, 256)">
+  <rect x="-144" y="-152" width="288" height="44" rx="12" fill="#C9A84C"/>
+  <rect x="-144" y="-22"  width="192" height="44" rx="12" fill="#C9A84C"/>
+  <rect x="-144" y="108"  width="288" height="44" rx="12" fill="#C9A84C"/>
+</g>
+
+</svg>

@@ -1,0 +1,8 @@
+  - Logo: três barras horizontais douradas alinhadas à esquerda — símbolo "E" estilizado, dourado (#C9A84C) sobre preto
+  - Wordmark: "ELYSIUM" em Helvetica Neue / Arial weight 200, letter-spacing generoso, cor #C9A84C
+  - Sem tagline visível na logo principal — apenas símbolo + nome
+  - Assinatura institucional: "Feito pela Beyonder · 2026" (rodapé de Configurações e tela de login)
+  - Cor de destaque da marca: `--brand-gold: #C9A84C`
+  - Arquivos de logo: `assets/elysium-logo.svg` (logo completa 680×280) e `assets/elysium-favicon.svg` (ícone 512×512)
+  - Na página de login: exibir ElysiumLoginLogo centralizado, com a assinatura "Beyonder · 2026" abaixo em #555 (text-muted)
+  - No manifest PWA: usar `assets/elysium-favicon.svg` como base dos ícones

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf \"/c/Users/johna/Desktop/johna\")",
+      "Read(//c/Users/johna/.claude/projects/c--Users-johna-Desktop-Amenti/**)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
+    ]
+  }
+}

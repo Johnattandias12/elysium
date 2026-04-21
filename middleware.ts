@@ -1,26 +1,28 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+
+type CookieItem = { name: string; value: string; options?: Partial<ResponseCookie> }
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request: { headers: request.headers } })
+  let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set(name, value)
-          response = NextResponse.next({ request: { headers: request.headers } })
-          response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2])
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set(name, '')
-          response = NextResponse.next({ request: { headers: request.headers } })
-          response.cookies.set(name, '', options as Parameters<typeof response.cookies.set>[2])
+        setAll(cookiesToSet: CookieItem[]) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
         },
       },
     }
@@ -44,7 +46,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return response
+  return supabaseResponse
 }
 
 export const config = {

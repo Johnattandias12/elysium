@@ -1,6 +1,9 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+
+type CookieItem = { name: string; value: string; options?: Partial<ResponseCookie> }
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -14,14 +17,13 @@ export async function GET(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
+          getAll() {
+            return cookieStore.getAll()
           },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set({ name, value, ...options })
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.delete({ name, ...options })
+          setAll(cookiesToSet: CookieItem[]) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
           },
         },
       }
